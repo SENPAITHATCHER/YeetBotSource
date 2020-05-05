@@ -1,77 +1,115 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 using Discord;
-using Discord.Net;
 using Discord.Commands;
 using Discord.WebSocket;
-using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Discord.Audio;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
 
-namespace csharpi
+namespace yeetbot
 {
     class Program
     {
-        private readonly DiscordSocketClient _client;
-        private readonly IConfiguration _config;
+        static void Main(string[] args) => new Program().RunBotAsync().GetAwaiter().GetResult();
+        private DiscordSocketClient _client;
+        private CommandService _commands;
+        private IServiceProvider _services;
+        private AudioService _audio;
 
-        static void Main(string[] args)
-        {
-            new Program().MainAsync().GetAwaiter().GetResult();
-        }
+        private IConfiguration _config;
 
-        public Program()
+
+
+        public async Task RunBotAsync()
         {
             _client = new DiscordSocketClient();
+            _commands = new CommandService();
+            _audio = new AudioService();
+            _services = new ServiceCollection().AddSingleton(new AudioService())
+            .AddSingleton(_client)
+            .AddSingleton(_commands)
+            .BuildServiceProvider();
 
-            //Hook into log event and write it out to the console
-            _client.Log += LogAsync;
-
-            //Hook into the client ready event
-            _client.Ready += ReadyAsync;
-
-            //Hook into the message received event, this is how we handle the hello world example
-            _client.MessageReceived += MessageReceivedAsync;
-
-            //Create the configuration
             var _builder = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile(path: "config.json");            
             _config = _builder.Build();
-        }
+            _client.Log += _client_Log;
+            
+            //await SetGame();
 
-        public async Task MainAsync()
-        {
-            //This is where we get the Token value from the configuration file
             await _client.LoginAsync(TokenType.Bot, _config["Token"]);
             await _client.StartAsync();
-
-            // Block the program until it is closed.
+            await RegisterCommandAsync();
+            
+            await Task.Delay(1500);
+            
+            await userControl.Initialize(_client);
+            
             await Task.Delay(-1);
+
         }
 
-        private Task LogAsync(LogMessage log)
+        private Task _client_Log(LogMessage arg)
         {
-            Console.WriteLine(log.ToString());
+            Console.WriteLine(arg);
             return Task.CompletedTask;
         }
 
-        private Task ReadyAsync()
+        public async Task RegisterCommandAsync()
         {
-            Console.WriteLine($"Connected as -> [] :)");
-            return Task.CompletedTask;
-        }
-
-        //I wonder if there's a better way to handle commands (spoiler: there is :))
-        private async Task MessageReceivedAsync(SocketMessage message)
-        {
-            //This ensures we don't loop things by responding to ourselves (as the bot)
-            if (message.Author.Id == _client.CurrentUser.Id)
-                return;
-
-            if (message.Content == ".hello")
+            _client.MessageReceived += HandleCommandAsync;
+            _client.UserVoiceStateUpdated += (user, before, after) =>
             {
-                await message.Channel.SendMessageAsync("world!");
-            }  
+                if (before.VoiceChannel != after.VoiceChannel)
+                {
+                    Console.WriteLine($"VoiceStateUpdate: {user} - {before.VoiceChannel?.Name ?? "null"} -> {after.VoiceChannel?.Name ?? "null"}");
+                    //userControl.Refresh(user, before, after);
+                }
+                return Task.CompletedTask;
+            };
+            _client.GuildMemberUpdated +=  userControl.UserUpdate;
+            
+            
+            await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
+        }
+
+        private async Task HandleCommandAsync(SocketMessage arg)
+        {
+            var message = arg as SocketUserMessage;
+            var context = new SocketCommandContext(_client, message);
+            if (message.Author.IsBot) return;
+            int argPos = 0;
+            
+            string pref = _config["Prefix"];
+            Console.WriteLine(pref);
+            if (message.HasStringPrefix(pref, ref argPos))
+            {
+                var result = await _commands.ExecuteAsync(context, argPos, _services);
+                if (!result.IsSuccess)
+                {
+                    if (result.Error == CommandError.UnknownCommand)
+                    {
+                        await message.Channel.SendMessageAsync("Unknown command! Type " + pref + "help to see all available commands!");
+                    }
+                    else if (result.Error == CommandError.BadArgCount)
+                    {
+                        await message.Channel.SendMessageAsync("The arguments for the command are invalid! Type " + pref + "help to see all available commands and their usage!");//$command visszaadja  a command beirando parametereit
+                    }
+                    else
+                    {
+                        Console.WriteLine(result.ErrorReason);
+                    }
+                }
+                    
+
+            }
         }
     }
 }
