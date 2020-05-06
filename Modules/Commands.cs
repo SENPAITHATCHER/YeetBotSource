@@ -8,6 +8,8 @@ using Discord.Commands;
 using Discord;
 using Discord.Audio;
 using System.Diagnostics;
+using yeetbot.UserControl;
+
 
 namespace yeetbot.Modules
 {
@@ -191,7 +193,52 @@ namespace yeetbot.Modules
         
         //Számláló ami számolja hogy czkrisz2 hányszor mute-olta magát és kiírja óránként.
         //
-        [Command("Teszt"), RequireUserPermission(GuildPermission.Administrator)] public Task Teszt() { return null; }
+
+        [Command("VoteKick")]public Task VoteKick([Remainder] string target)
+        {
+            user targetUser;
+            if (target.Substring(0, 3) == "<@!")
+            {
+                targetUser = userControl.GetUser(Convert.ToUInt64(target.Substring(3, target.Length - 4)));
+            }
+            else
+            {
+                targetUser = userControl.GetUser(target);
+            }
+            if (targetUser == null || targetUser.Channel == null)
+            {
+                Context.Channel.SendMessageAsync("Target not found!");
+            }
+            else
+            {
+                if (targetUser.Channel == null)
+                {
+                    Context.Channel.SendMessageAsync("The target is not in a voice channel!");
+                }
+                else if ((Context.Message.Author as IGuildUser).VoiceChannel == null)
+                {
+                    Context.Channel.SendMessageAsync("You are not in a voice channel!");
+                }
+                else if (targetUser.Channel != (Context.Message.Author as IGuildUser).VoiceChannel)
+                {
+                    Context.Channel.SendMessageAsync("You can only vote against users who are in the same channel as you!");
+                }
+                else
+                {
+                    userControl.VoteKick(targetUser.Channel, Context, targetUser, Context.Message.Author.Id);
+                }
+            }
+            return null;
+        }
+
+
+        [Command("Teszt"), RequireUserPermission(GuildPermission.Administrator)] public async Task Teszt([Remainder] string target) 
+        { 
+            if (target.Substring(0, 3) == "<@!")
+            {
+                await Context.Channel.SendMessageAsync(Convert.ToUInt64(target.Substring(3, target.Length - 4)).ToString());
+            }
+        }
         //
         [Command("ping2")]
         [Alias("latency")]

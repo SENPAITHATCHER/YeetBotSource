@@ -96,7 +96,7 @@ namespace yeetbot
                 {
                     if (result.Error == CommandError.UnknownCommand)
                     {
-                        await message.Channel.SendMessageAsync("Unknown command! Type " + pref + "help to see all available commands!");
+                        await message.Channel.SendMessageAsync("```fix\nUnknown command!``` Type " + pref + "help to see all available commands!");
                     }
                     else if (result.Error == CommandError.BadArgCount)
                     {

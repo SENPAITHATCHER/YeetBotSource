@@ -18,12 +18,14 @@ namespace yeetbot.UserControl
     public class restrictions
     {
         private IVoiceChannel channel;
-        private int level;
+        private byte level;
+        private DateTime expiry = new DateTime();
 
-        public restrictions(IVoiceChannel channel, int level)
+        public restrictions(IVoiceChannel channel, byte level)
         {
             this.channel = channel;
             this.level = level;
+            expiry = DateTime.Now.AddMinutes(15);
         }
 
         public IVoiceChannel Channel { get => channel; }

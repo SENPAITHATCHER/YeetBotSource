@@ -116,19 +116,20 @@ namespace yeetbot
                 Console.WriteLine(item.username + " #" + item.tag + " " + item.channel);
             }
         }
-
+        */
         public static int UsersInChannel(IVoiceChannel a)
         {
             int db = 0;
             foreach (var item in ActiveUsers)
             {
-                if (item.channel == a.ToString())
+                if (item.Channel == a)
                 {
                     db++;
                 }
             }
             return db;
         }
+        /*
         public static bool InVoiceChannel(IGuildUser target)
         {
             foreach (var item in ActiveUsers)
@@ -152,17 +153,20 @@ namespace yeetbot
             return 0;
         }
         */
-
+        public static async void VoteKick(IVoiceChannel where, SocketCommandContext context, user target, ulong caster)
+        {
+            await ActiveUsers[ActiveUsers.IndexOf(target)].Vote(where, 2, caster, context);
+        }
         public static async Task UserUpdate(IGuildUser a, IGuildUser b)
         {
             user updateduser = userControl.GetUser(a.Id);
             if (updateduser != null)
             {
-                await updateduser.UserUpdate(b);
+                //await updateduser.UserUpdate(b);
             }
         }
 
-        private static user GetUser(ulong id)
+        public static user GetUser(ulong id)
         {
             foreach (var item in ActiveUsers)
             {
@@ -173,7 +177,7 @@ namespace yeetbot
             }
             return null;
         }
-        private static user GetUser(string name)
+        public static user GetUser(string name)
         {
             foreach (var item in ActiveUsers)
             {
