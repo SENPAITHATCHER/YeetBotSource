@@ -10,7 +10,6 @@ using Discord.Audio;
 using System.Diagnostics;
 using yeetbot.UserControl;
 
-
 namespace yeetbot.Modules
 {
     public class Commands : ModuleBase<SocketCommandContext>
@@ -230,7 +229,15 @@ namespace yeetbot.Modules
             }
             return null;
         }
-
+        [Command("DrawTeam")] public async Task DrawnTeam([Remainder] int playerNum )
+        {
+            var sw = Stopwatch.StartNew();
+            await ReplyAsync("Drawing Team.");
+            sw.Stop();
+            int seed = Convert.ToInt32(Math.Floor(sw.Elapsed.TotalMilliseconds));
+            IVoiceChannel channel = (Context.Message.Author as IGuildUser).VoiceChannel;
+            await drawteam.drawTeam(channel, seed);
+        }
 
         [Command("Teszt"), RequireUserPermission(GuildPermission.Administrator)] public async Task Teszt([Remainder] string target) 
         { 
@@ -257,6 +264,8 @@ namespace yeetbot.Modules
             // modify the message we sent earlier to display measured time
             await msg.ModifyAsync(x => x.Content = $"**Websocket latency**: {Context.Client.Latency}ms\n" +
                                                    $"**Response**: {sw.Elapsed.TotalMilliseconds}ms");
+
+         
         }
     }
 }

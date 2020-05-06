@@ -117,7 +117,7 @@ namespace yeetbot
             }
         }
         */
-        public static int UsersInChannel(IVoiceChannel a)
+        public static int UserCountInChannel(IVoiceChannel a)
         {
             int db = 0;
             foreach (var item in ActiveUsers)
@@ -128,6 +128,19 @@ namespace yeetbot
                 }
             }
             return db;
+        }
+        public static List<user> UsersInChannel(IVoiceChannel a)
+        {
+            List<user> b = new List<user>();
+            foreach (var item in ActiveUsers)
+            {
+                if (item.Channel == a)
+                {
+                    b.Add(item);
+                }
+            }
+            return b;
+
         }
         /*
         public static bool InVoiceChannel(IGuildUser target)

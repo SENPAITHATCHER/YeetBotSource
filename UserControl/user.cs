@@ -110,7 +110,7 @@ namespace yeetbot.UserControl
         if (OngoingVote(where, lvl))
         {
             int votes = AddVote(where, lvl, voter, context);
-            int maxvotes = Convert.ToInt32(Math.Ceiling(userControl.UsersInChannel(where)*0.6));
+            int maxvotes = Convert.ToInt32(Math.Ceiling(userControl.UserCountInChannel(where)*0.6));
             if (lvl == 1)
             {
                 await context.Channel.SendMessageAsync("Vote for muting " + nick + "(" + where.ToString() + "): " + votes + "/" + maxvotes);
@@ -159,12 +159,12 @@ namespace yeetbot.UserControl
         if (lvl == 1)
         {
             await context.Channel.SendMessageAsync("The vote for muting " + nick + " has started! (" + where.ToString() + ") Use $votemute [user] to vote!");
-            await context.Channel.SendMessageAsync("Vote for muting " + nick + "(" + where.ToString() + "): " + 1 + "/" + Convert.ToInt32(Math.Ceiling(userControl.UsersInChannel(where)*0.6)));
+            await context.Channel.SendMessageAsync("Vote for muting " + nick + "(" + where.ToString() + "): " + 1 + "/" + Convert.ToInt32(Math.Ceiling(userControl.UserCountInChannel(where)*0.6)));
         }
         else
         {
             await context.Channel.SendMessageAsync("The vote for kicking " + nick + " has started! (" + where.ToString() + ") Use $votekick [user] to vote!");
-            await context.Channel.SendMessageAsync("Vote for kicking " + nick + "(" + where.ToString() + "): " + 1 + "/" + Convert.ToInt32(Math.Ceiling(userControl.UsersInChannel(where)*0.6)));
+            await context.Channel.SendMessageAsync("Vote for kicking " + nick + "(" + where.ToString() + "): " + 1 + "/" + Convert.ToInt32(Math.Ceiling(userControl.UserCountInChannel(where)*0.6)));
         }
         await Task.Delay(1*1000*60);
         if (OngoingVote(where, lvl))
