@@ -229,15 +229,28 @@ namespace yeetbot.Modules
             }
             return null;
         }
-        [Command("DrawTeam")] public async Task DrawnTeam([Remainder] int playerNum )
+        [Command("DrawTeam")][Alias("dt")] public async Task DrawnTeam([Remainder] int playerNum )
         {
-            var sw = Stopwatch.StartNew();
-            await ReplyAsync("Drawing Team.");
-            sw.Stop();
-            int seed = Convert.ToInt32(Math.Floor(sw.Elapsed.TotalMilliseconds));
+            
             IVoiceChannel channel = (Context.Message.Author as IGuildUser).VoiceChannel;
-            await drawteam.drawTeam(channel, seed);
+            if (playerNum <= userControl.UserCountInChannel(channel) && playerNum > 0)
+            {
+                var sw = Stopwatch.StartNew();
+                await ReplyAsync("Drawing Team."); 
+                sw.Stop();
+                int seed = Convert.ToInt32(Math.Floor(sw.Elapsed.TotalMilliseconds));
+                await drawteam.drawTeam(channel, seed, playerNum, Context);
+            }
+            else if (playerNum <= 0)
+            {
+                await ReplyAsync(":exclamation: The size of the team can't be negative or zero :exclamation:");
+            }
+            else
+            {
+                await ReplyAsync(":exclamation: The size of the team can't be bigger than the number of actually connected users :exclamation:");
+            }
         }
+        
 
         [Command("Teszt"), RequireUserPermission(GuildPermission.Administrator)] public async Task Teszt([Remainder] string target) 
         { 
