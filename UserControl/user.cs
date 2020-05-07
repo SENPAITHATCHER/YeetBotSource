@@ -192,5 +192,16 @@ namespace yeetbot.UserControl
                 }
             }
     }
+    
+
+    public async Task MoveUser(IVoiceChannel channel)
+    {
+        if (channel == null)
+        {
+            return;
+        }
+        await (iuser as IGuildUser).ModifyAsync(x => { x.Channel = Optional.Create(channel);});
+
     }
+}
 }
